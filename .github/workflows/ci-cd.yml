@@ -1,0 +1,269 @@
+# Pipeline CI/CD de TaskFlow.
+# Etapas: calidad -> pruebas -> seguridad -> build de imagen -> despliegue -> smoke tests.
+# Los jobs de calidad, pruebas y seguridad corren en paralelo para acortar el ciclo.
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+    tags: ['v*']
+  pull_request:
+    branches: [main, develop]
+  # Permite lanzar el pipeline manualmente desde la interfaz de GitHub
+  workflow_dispatch:
+
+# Cancela ejecuciones anteriores de la misma rama: no se despliega codigo obsoleto
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # ---------------------------------------------------------------
+  # 1. Analisis estatico: ESLint y formato
+  # ---------------------------------------------------------------
+  calidad:
+    name: Analisis estatico
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: ESLint (analisis estatico de codigo)
+        run: npm run lint
+
+      - name: Prettier (verificacion de formato)
+        run: npm run format:check
+
+  # ---------------------------------------------------------------
+  # 2. Pruebas unitarias e integracion sobre una matriz de versiones
+  # ---------------------------------------------------------------
+  pruebas:
+    name: Pruebas (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      # Si falla una version se completan las demas: da mas informacion de diagnostico
+      fail-fast: false
+      matrix:
+        node: ['20', '22']
+    steps:
+      - name: Descargar el codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Pruebas unitarias
+        run: npm run test:unit
+
+      - name: Pruebas de integracion
+        run: npm run test:integration
+
+      - name: Cobertura de codigo (falla si baja del umbral)
+        run: npm run test:coverage
+
+      - name: Publicar el reporte de cobertura como artefacto
+        # Se sube solo una vez, desde la version principal de Node
+        if: matrix.node == '20'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura
+          path: coverage/
+          retention-days: 7
+
+  # ---------------------------------------------------------------
+  # 3. Seguridad: vulnerabilidades en dependencias
+  # ---------------------------------------------------------------
+  seguridad:
+    name: Auditoria de seguridad
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: npm audit (severidad alta o superior)
+        run: npm audit --audit-level=high
+
+  # ---------------------------------------------------------------
+  # 4. Construccion y publicacion de la imagen Docker
+  # ---------------------------------------------------------------
+  imagen:
+    name: Build y push de la imagen
+    runs-on: ubuntu-latest
+    # Solo se construye si las tres validaciones previas pasaron
+    needs: [calidad, pruebas, seguridad]
+    # Los pull requests no publican imagenes, solo validan
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      imagen: ${{ steps.meta.outputs.tags }}
+    steps:
+      - name: Descargar el codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar Buildx (builds con cache y multiplataforma)
+        uses: docker/setup-buildx-action@v3
+
+      - name: Autenticarse en GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Calcular etiquetas y metadatos de la imagen
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=sha,format=short
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Construir y publicar la imagen
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: runtime
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            APP_VERSION=${{ github.sha }}
+          # Cache en GitHub Actions: acelera builds sucesivos
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ---------------------------------------------------------------
+  # 5. Pruebas de humo sobre el contenedor recien construido
+  # ---------------------------------------------------------------
+  smoke-test:
+    name: Pruebas de humo del contenedor
+    runs-on: ubuntu-latest
+    needs: [imagen]
+    steps:
+      - name: Descargar el codigo
+        uses: actions/checkout@v4
+
+      - name: Construir la imagen localmente
+        run: docker build --target runtime -t taskflow:ci .
+
+      - name: Levantar el contenedor
+        run: docker run -d --name taskflow-ci -p 3000:3000 taskflow:ci
+
+      - name: Esperar a que el healthcheck pase
+        run: ./scripts/wait-for-health.sh http://localhost:3000/health 60
+
+      - name: Ejecutar las pruebas de humo contra la API
+        run: ./scripts/smoke-test.sh http://localhost:3000
+
+      - name: Mostrar los logs del contenedor si algo fallo
+        if: failure()
+        run: docker logs taskflow-ci
+
+      - name: Detener y limpiar el contenedor
+        if: always()
+        run: docker rm -f taskflow-ci
+
+  # ---------------------------------------------------------------
+  # 6. Despliegue a staging (rama develop)
+  # ---------------------------------------------------------------
+  desplegar-staging:
+    name: Desplegar a staging
+    runs-on: ubuntu-latest
+    needs: [smoke-test]
+    if: github.ref == 'refs/heads/develop'
+    environment:
+      name: staging
+      url: https://staging.taskflow.example.com
+    steps:
+      - name: Descargar el codigo
+        uses: actions/checkout@v4
+
+      - name: Desplegar
+        # En un entorno real aqui iria el ssh/kubectl/compose contra el servidor.
+        # Se deja documentado el comando para que la demostracion sea reproducible.
+        run: |
+          echo "Desplegando ${{ needs.imagen.outputs.imagen }} en staging"
+          echo "Comando equivalente en el servidor:"
+          echo "  docker compose pull && docker compose up -d"
+
+  # ---------------------------------------------------------------
+  # 7. Despliegue a produccion (rama main)
+  # ---------------------------------------------------------------
+  desplegar-produccion:
+    name: Desplegar a produccion
+    runs-on: ubuntu-latest
+    needs: [smoke-test]
+    if: github.ref == 'refs/heads/main'
+    # El entorno 'production' puede exigir aprobacion manual en la configuracion del repo
+    environment:
+      name: production
+      url: https://taskflow.example.com
+    steps:
+      - name: Descargar el codigo
+        uses: actions/checkout@v4
+
+      - name: Desplegar
+        run: |
+          echo "Desplegando ${{ needs.imagen.outputs.imagen }} en produccion"
+          echo "  docker compose pull && docker compose up -d"
+
+      - name: Verificar el despliegue
+        run: echo "Ejecutar smoke tests contra la URL de produccion"
+
+  # ---------------------------------------------------------------
+  # 8. Resumen del pipeline, siempre se ejecuta
+  # ---------------------------------------------------------------
+  resumen:
+    name: Resumen del pipeline
+    runs-on: ubuntu-latest
+    needs: [calidad, pruebas, seguridad]
+    if: always()
+    steps:
+      - name: Escribir el resumen en la interfaz de GitHub
+        run: |
+          {
+            echo "## Resultado del pipeline"
+            echo ""
+            echo "| Etapa | Resultado |"
+            echo "|-------|-----------|"
+            echo "| Analisis estatico | ${{ needs.calidad.result }} |"
+            echo "| Pruebas | ${{ needs.pruebas.result }} |"
+            echo "| Seguridad | ${{ needs.seguridad.result }} |"
+            echo ""
+            echo "Commit: \`${{ github.sha }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"

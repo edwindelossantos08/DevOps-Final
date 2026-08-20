@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TaskFlow — Gestor de Tareas</title>
+    <meta name="description" content="Aplicacion de demostracion del pipeline DevOps: gestor de tareas con API REST, Docker, CI/CD y monitoreo." />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✅</text></svg>" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="cabecera">
+      <div class="contenedor cabecera__inner">
+        <div class="marca">
+          <span class="marca__logo">✅</span>
+          <div>
+            <h1 class="marca__titulo">TaskFlow</h1>
+            <p class="marca__sub">Gestor de tareas · Demo Pipeline DevOps</p>
+          </div>
+        </div>
+        <div class="estado" id="estadoServicio" title="Estado del backend">
+          <span class="estado__punto" id="estadoPunto"></span>
+          <span id="estadoTexto">Comprobando…</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="contenedor">
+      <!-- Panel de metricas agregadas, alimentado por GET /api/tasks/stats -->
+      <section class="metricas" aria-label="Resumen de tareas">
+        <article class="metrica">
+          <p class="metrica__valor" id="statTotal">0</p>
+          <p class="metrica__etiqueta">Total</p>
+        </article>
+        <article class="metrica">
+          <p class="metrica__valor metrica__valor--pendiente" id="statPendientes">0</p>
+          <p class="metrica__etiqueta">Pendientes</p>
+        </article>
+        <article class="metrica">
+          <p class="metrica__valor metrica__valor--ok" id="statCompletadas">0</p>
+          <p class="metrica__etiqueta">Completadas</p>
+        </article>
+        <article class="metrica">
+          <p class="metrica__valor" id="statAvance">0%</p>
+          <p class="metrica__etiqueta">Avance</p>
+          <div class="barra"><div class="barra__relleno" id="barraAvance"></div></div>
+        </article>
+      </section>
+
+      <!-- Formulario de alta de tareas -->
+      <section class="tarjeta">
+        <h2 class="tarjeta__titulo">Nueva tarea</h2>
+        <form id="formularioTarea" class="formulario" novalidate>
+          <div class="campo campo--ancho">
+            <label for="campoTitulo">Titulo *</label>
+            <input id="campoTitulo" name="title" type="text" maxlength="120" placeholder="Ej. Configurar el workflow de GitHub Actions" required />
+          </div>
+          <div class="campo">
+            <label for="campoPrioridad">Prioridad</label>
+            <select id="campoPrioridad" name="priority">
+              <option value="low">Baja</option>
+              <option value="medium" selected>Media</option>
+              <option value="high">Alta</option>
+            </select>
+          </div>
+          <div class="campo campo--ancho">
+            <label for="campoDescripcion">Descripcion</label>
+            <textarea id="campoDescripcion" name="description" rows="2" maxlength="500" placeholder="Detalles opcionales de la tarea"></textarea>
+          </div>
+          <div class="campo campo--accion">
+            <button type="submit" class="boton boton--primario" id="botonCrear">Agregar tarea</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Listado con filtros -->
+      <section class="tarjeta">
+        <div class="tarjeta__cabecera">
+          <h2 class="tarjeta__titulo">Tareas</h2>
+          <div class="filtros" role="group" aria-label="Filtrar tareas">
+            <button class="filtro filtro--activo" data-filtro="all">Todas</button>
+            <button class="filtro" data-filtro="active">Pendientes</button>
+            <button class="filtro" data-filtro="completed">Completadas</button>
+          </div>
+        </div>
+        <ul class="lista" id="listaTareas"></ul>
+        <p class="vacio oculto" id="mensajeVacio">No hay tareas que mostrar. Crea la primera arriba.</p>
+      </section>
+    </main>
+
+    <footer class="pie">
+      <div class="contenedor">
+        <span>TaskFlow v<span id="versionApp">—</span></span>
+        <span aria-hidden="true">·</span>
+        <a href="/health">/health</a>
+        <a href="/metrics">/metrics</a>
+        <a href="/api/tasks">/api/tasks</a>
+      </div>
+    </footer>
+
+    <!-- Contenedor de notificaciones efimeras -->
+    <div class="avisos" id="avisos" aria-live="polite"></div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

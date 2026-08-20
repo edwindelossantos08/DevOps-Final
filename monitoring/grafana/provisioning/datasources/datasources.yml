@@ -1,0 +1,25 @@
+# Aprovisionamiento automatico de las fuentes de datos de Grafana.
+# Evita configurarlas a mano tras cada arranque del stack.
+
+apiVersion: 1
+
+datasources:
+  # Metricas
+  - name: Prometheus
+    # El uid es fijo porque los paneles del dashboard lo referencian explicitamente
+    uid: prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false
+    jsonData:
+      timeInterval: 15s
+
+  # Logs centralizados
+  - name: Loki
+    uid: loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    editable: false

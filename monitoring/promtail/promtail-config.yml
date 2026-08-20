@@ -1,0 +1,52 @@
+# Promtail recolecta los archivos de log de TaskFlow y los envia a Loki.
+# La aplicacion escribe JSON, por lo que se parsea para extraer etiquetas utiles.
+
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+  log_level: warn
+
+positions:
+  # Guarda hasta que linea se leyo cada archivo para no reenviar tras un reinicio
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: taskflow-logs
+    static_configs:
+      - targets: ['localhost']
+        labels:
+          job: taskflow
+          service: taskflow-api
+          # Ruta del volumen compartido con el contenedor de la aplicacion
+          __path__: /var/log/taskflow/*.log
+
+    pipeline_stages:
+      # Extrae campos del JSON emitido por Winston
+      - json:
+          expressions:
+            level: level
+            message: message
+            timestamp: timestamp
+            statusCode: statusCode
+            route: route
+            requestId: requestId
+            durationMs: durationMs
+
+      # Usa la marca de tiempo del log y no la de ingesta
+      - timestamp:
+          source: timestamp
+          format: RFC3339Nano
+
+      # Solo se promueven a etiqueta los campos de baja cardinalidad.
+      # requestId y durationMs se quedan como campos del log para no explotar el indice.
+      - labels:
+          level:
+          route:
+          statusCode:
+
+      # El texto indexado es el mensaje, no el JSON completo
+      - output:
+          source: message

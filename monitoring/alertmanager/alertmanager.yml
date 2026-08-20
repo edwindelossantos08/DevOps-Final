@@ -1,0 +1,57 @@
+# Configuracion de Alertmanager: agrupacion, silenciado y enrutado de alertas.
+
+global:
+  # Tiempo tras el cual una alerta resuelta deja de considerarse activa
+  resolve_timeout: 5m
+
+# Plantilla del enrutado: define como se agrupan y a quien se notifica
+route:
+  # Agrupa por nombre de alerta y servicio para no inundar el canal
+  group_by: ['alertname', 'service']
+  # Espera antes de enviar el primer aviso de un grupo nuevo
+  group_wait: 30s
+  # Intervalo entre avisos de alertas nuevas dentro de un grupo existente
+  group_interval: 5m
+  # Intervalo de reenvio de una alerta que sigue activa
+  repeat_interval: 4h
+  receiver: equipo-devops
+
+  routes:
+    # Las alertas criticas se enrutan a un receptor propio con reenvio mas agresivo
+    - matchers:
+        - severity = "critical"
+      receiver: guardia-critica
+      repeat_interval: 30m
+
+    # Las informativas no despiertan a nadie
+    - matchers:
+        - severity = "info"
+      receiver: solo-registro
+      repeat_interval: 24h
+
+receivers:
+  # Receptor por defecto. El webhook apunta a un endpoint de ejemplo;
+  # en un entorno real se sustituye por Slack, correo o PagerDuty.
+  - name: equipo-devops
+    webhook_configs:
+      - url: http://app:3000/health
+        send_resolved: true
+
+  - name: guardia-critica
+    webhook_configs:
+      - url: http://app:3000/health
+        send_resolved: true
+
+  - name: solo-registro
+    webhook_configs:
+      - url: http://app:3000/health
+        send_resolved: false
+
+# Reglas de inhibicion: si el servicio esta caido, no tiene sentido alertar
+# tambien de latencia o memoria del mismo servicio.
+inhibit_rules:
+  - source_matchers:
+      - alertname = "AplicacionCaida"
+    target_matchers:
+      - severity =~ "warning|info"
+    equal: ['service']

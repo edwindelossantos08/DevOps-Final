@@ -1,0 +1,34 @@
+# Configuracion de Prometheus para el stack de TaskFlow.
+
+global:
+  # Frecuencia de recoleccion de metricas
+  scrape_interval: 15s
+  # Frecuencia con la que se evaluan las reglas de alerta
+  evaluation_interval: 15s
+  external_labels:
+    monitor: taskflow-monitor
+
+# Archivos con las reglas de alerta que evalua Prometheus
+rule_files:
+  - /etc/prometheus/alert.rules.yml
+
+# Destino al que se envian las alertas disparadas
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']
+
+scrape_configs:
+  # Metricas de la aplicacion TaskFlow expuestas en /metrics
+  - job_name: taskflow-app
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['app:3000']
+        labels:
+          service: taskflow-api
+          env: production
+
+  # Auto-monitoreo: Prometheus se scrapea a si mismo
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']

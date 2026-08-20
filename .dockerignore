@@ -1,0 +1,20 @@
+# Excluye del contexto de build todo lo que no necesita la imagen.
+# Reduce el tamano del contexto y evita invalidar la cache innecesariamente.
+node_modules
+npm-debug.log
+coverage
+data
+logs
+.git
+.github
+.gitignore
+.env
+.env.*
+!.env.example
+docs
+monitoring
+tests
+*.md
+Dockerfile
+.dockerignore
+docker-compose*.yml

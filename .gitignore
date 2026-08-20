@@ -1,0 +1,32 @@
+# Dependencias
+node_modules/
+
+# Artefactos de pruebas y cobertura
+coverage/
+*.lcov
+
+# Datos de la aplicacion (la base SQLite no se versiona)
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Variables de entorno locales
+.env
+.env.local
+.env.*.local
+
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Volumenes de monitoreo
+monitoring/**/data/

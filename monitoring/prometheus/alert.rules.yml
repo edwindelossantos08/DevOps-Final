@@ -1,0 +1,90 @@
+# Reglas de alerta de TaskFlow.
+# Cada alerta declara: condicion (expr), tiempo de espera (for), severidad y
+# anotaciones con el impacto y la accion recomendada para el operador.
+
+groups:
+  - name: taskflow-disponibilidad
+    rules:
+      # La instancia no responde al scrape: caida total del servicio
+      - alert: AplicacionCaida
+        expr: up{job="taskflow-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: taskflow-api
+        annotations:
+          summary: 'TaskFlow no responde'
+          description: 'La instancia {{ $labels.instance }} lleva mas de 1 minuto sin responder al scrape de Prometheus.'
+          runbook: "Ver docs/OPERACIONES.md, seccion 'Aplicacion caida'."
+
+  - name: taskflow-errores
+    rules:
+      # Mas del 5% de las respuestas son errores 5xx durante 2 minutos
+      - alert: TasaDeErroresAlta
+        expr: |
+          (
+            sum(rate(http_requests_total{status_code=~"5.."}[5m]))
+            /
+            clamp_min(sum(rate(http_requests_total[5m])), 0.001)
+          ) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+          service: taskflow-api
+        annotations:
+          summary: 'Tasa de errores 5xx superior al 5%'
+          description: 'El {{ $value | humanizePercentage }} de las peticiones esta fallando con error de servidor.'
+          runbook: 'Revisar logs de error en Grafana/Loki filtrando level=error.'
+
+      # Exceso de errores de cliente: suele indicar un frontend desalineado con la API
+      - alert: ExcesoDeErroresDeCliente
+        expr: sum(rate(http_requests_total{status_code=~"4.."}[5m])) > 5
+        for: 5m
+        labels:
+          severity: warning
+          service: taskflow-api
+        annotations:
+          summary: 'Volumen inusual de errores 4xx'
+          description: 'Se registran mas de 5 errores de cliente por segundo durante 5 minutos.'
+
+  - name: taskflow-rendimiento
+    rules:
+      # El percentil 95 de latencia supera 1 segundo
+      - alert: LatenciaAlta
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le)
+          ) > 1
+        for: 3m
+        labels:
+          severity: warning
+          service: taskflow-api
+        annotations:
+          summary: 'Latencia p95 por encima de 1 segundo'
+          description: 'El percentil 95 de latencia es {{ $value | humanizeDuration }}.'
+          runbook: 'Revisar consultas SQL lentas y el uso de CPU del contenedor.'
+
+  - name: taskflow-recursos
+    rules:
+      # Consumo de memoria residente por encima de 400 MB
+      - alert: MemoriaElevada
+        expr: taskflow_process_resident_memory_bytes > 400 * 1024 * 1024
+        for: 5m
+        labels:
+          severity: warning
+          service: taskflow-api
+        annotations:
+          summary: 'Uso de memoria elevado'
+          description: 'El proceso consume {{ $value | humanize1024 }}B de memoria residente.'
+
+      # Reinicio detectado: el uptime del proceso se reinicia a cero
+      - alert: ReinicioDelServicio
+        expr: taskflow_process_start_time_seconds > (time() - 300)
+        for: 0m
+        labels:
+          severity: info
+          service: taskflow-api
+        annotations:
+          summary: 'El servicio se reinicio recientemente'
+          description: 'El proceso lleva menos de 5 minutos en ejecucion; puede ser un despliegue o un crash.'
