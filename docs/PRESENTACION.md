@@ -1,28 +1,29 @@
 # Presentación Final — TaskFlow
 
-Guion de la presentación grupal, demo en vivo y análisis del proyecto.
+Guion de la presentación, demo en vivo y análisis del proyecto.
+Autor: **Edwin De Los Santos · 2025-1032**
 Duración objetivo: **15 minutos de exposición + 5 de preguntas**.
 
 ---
 
 ## Estructura de la presentación
 
-| #   | Sección                         | Tiempo | Responsable |
-| --- | ------------------------------- | ------ | ----------- |
-| 1   | Introducción y objetivos        | 1 min  | —           |
-| 2   | Arquitectura de la aplicación   | 2 min  | —           |
-| 3   | Pipeline CI/CD                  | 3 min  | —           |
-| 4   | **Demo en vivo**                | 5 min  | —           |
-| 5   | Monitoreo y alertas             | 2 min  | —           |
-| 6   | Desafíos y lecciones aprendidas | 2 min  | —           |
-| 7   | Preguntas                       | 5 min  | Todos       |
+| #   | Sección                         | Tiempo |
+| --- | ------------------------------- | ------ |
+| 1   | Introducción y objetivos        | 1 min  |
+| 2   | Arquitectura de la aplicación   | 2 min  |
+| 3   | Pipeline CI/CD                  | 3 min  |
+| 4   | **Demo en vivo**                | 5 min  |
+| 5   | Monitoreo y alertas             | 2 min  |
+| 6   | Desafíos y lecciones aprendidas | 2 min  |
+| 7   | Preguntas                       | 5 min  |
 
 ---
 
 ## Diapositiva 1 — Portada
 
 **TaskFlow — Pipeline DevOps de extremo a extremo**
-Práctica Final · Integrantes · Fecha
+Práctica Final · Edwin De Los Santos · 2025-1032
 
 > Frase de apertura: _"La aplicación es sencilla a propósito. Lo que construimos no es
 > un gestor de tareas: es todo el camino automatizado que lleva un commit a producción
@@ -214,16 +215,16 @@ se degradaría. La misma lógica se aplicó en Promtail: solo `level`, `route` y
 
 ## Diapositiva 8 — Desafíos y soluciones
 
-| #   | Desafío                                                                                             | Solución adoptada                                                                          | Qué se aprendió                                                   |
-| --- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
-| 1   | **Las pruebas se contaminaban entre sí:** una suite dejaba datos que rompían a la siguiente         | `NODE_ENV=test` fuerza SQLite en `:memory:` y `resetDb()` corre en cada `beforeEach`       | Las pruebas deben ser independientes del orden de ejecución       |
-| 2   | **`GET /api/tasks/stats` devolvía 400:** Express la capturaba como `/:id` con id `"stats"`          | Declarar la ruta literal **antes** que la paramétrica en el router                         | En Express el orden de las rutas es semántico, no cosmético       |
-| 3   | **Cardinalidad explosiva en Prometheus:** cada id generaba una serie nueva                          | Normalizar la etiqueta `route` usando `req.route.path`                                     | Una métrica mal etiquetada es peor que no tener métrica           |
-| 4   | **La imagen Docker pesaba más de 1 GB:** incluía compiladores y devDependencies                     | Build multi-etapa: la etapa `runtime` solo recibe `node_modules` de producción y el código | Menos superficie es menos peso _y_ menos riesgo                   |
-| 5   | **`docker stop` cortaba peticiones en vuelo:** Node no recibía `SIGTERM` como PID 1                 | `tini` como init + `server.close()` con temporizador de 10 s                               | El apagado ordenado es parte del contrato con el orquestador      |
-| 6   | **Alerta de caída con seis avisos simultáneos:** latencia, memoria y errores se disparaban a la vez | Regla de **inhibición** en Alertmanager sobre `AplicacionCaida`                            | Una alerta que satura el canal deja de ser útil                   |
-| 7   | **La readiness reiniciaba el contenedor ante un fallo de BD**                                       | Separar liveness (`/health`, no toca la BD) de readiness (`/health/ready`, sí)             | Reiniciar no arregla un volumen corrupto: solo borra la evidencia |
-| 8   | **La cobertura bajaba sin que nadie lo notara**                                                     | `coverageThreshold` en `jest.config.js` hace fallar la build                               | Una métrica que no bloquea nada se ignora en dos semanas          |
+| #   | Desafío                                                                                             | Solución adoptada                                                                          |
+| --- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| 1   | **Las pruebas se contaminaban entre sí:** una suite dejaba datos que rompían a la siguiente         | `NODE_ENV=test` fuerza SQLite en `:memory:` y `resetDb()` corre en cada `beforeEach`       |
+| 2   | **`GET /api/tasks/stats` devolvía 400:** Express la capturaba como `/:id` con id `"stats"`          | Declarar la ruta literal **antes** que la paramétrica en el router                         |
+| 3   | **Cardinalidad explosiva en Prometheus:** cada id generaba una serie nueva                          | Normalizar la etiqueta `route` usando `req.route.path`                                     |
+| 4   | **La imagen Docker pesaba más de 1 GB:** incluía compiladores y devDependencies                     | Build multi-etapa: la etapa `runtime` solo recibe `node_modules` de producción y el código |
+| 5   | **`docker stop` cortaba peticiones en vuelo:** Node no recibía `SIGTERM` como PID 1                 | `tini` como init + `server.close()` con temporizador de 10 s                               |
+| 6   | **Alerta de caída con seis avisos simultáneos:** latencia, memoria y errores se disparaban a la vez | Regla de **inhibición** en Alertmanager sobre `AplicacionCaida`                            |
+| 7   | **La readiness reiniciaba el contenedor ante un fallo de BD**                                       | Separar liveness (`/health`, no toca la BD) de readiness (`/health/ready`, sí)             |
+| 8   | **La cobertura bajaba sin que nadie lo notara**                                                     | `coverageThreshold` en `jest.config.js` hace fallar la build                               |
 
 ---
 

@@ -2,6 +2,8 @@
 
 > Práctica Final · Diseño e Implementación de un Pipeline DevOps
 > Aplicación web de gestión de tareas con CI/CD, contenedores, pruebas automatizadas y monitoreo.
+>
+> **Autor:** Edwin De Los Santos · Matrícula 2025-1032
 
 [![CI/CD Pipeline](https://github.com/USUARIO/REPO/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/USUARIO/REPO/actions/workflows/ci-cd.yml)
 ![Node](https://img.shields.io/badge/node-20.x-green)
