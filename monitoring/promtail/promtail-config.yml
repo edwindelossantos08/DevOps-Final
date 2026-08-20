@@ -47,6 +47,6 @@ scrape_configs:
           route:
           statusCode:
 
-      # El texto indexado es el mensaje, no el JSON completo
-      - output:
-          source: message
+      # No se usa una etapa 'output': la linea se conserva como JSON completo.
+      # Asi las consultas del tipo `{job="taskflow"} | json | durationMs > 500`
+      # siguen viendo todos los campos, no solo el mensaje.

@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TaskFlow — Pipeline DevOps · Presentación Final</title>
+    <style>
+      /* Deck de presentacion autocontenido: sin dependencias externas.
+         Navegacion con flechas, espacio, clic o swipe. */
+
+      :root {
+        --fondo: #0d1017;
+        --superficie: #161a24;
+        --borde: #262b3a;
+        --texto: #e8eaf0;
+        --suave: #949cb2;
+        --azul: #5b8cff;
+        --verde: #34d17d;
+        --ambar: #f5b942;
+        --rojo: #f2555a;
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+
+      html, body { height: 100%; }
+
+      body {
+        background: var(--fondo);
+        color: var(--texto);
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        overflow: hidden;
+        line-height: 1.55;
+      }
+
+      .slide {
+        display: none;
+        height: 100vh;
+        padding: 6vh 7vw;
+        flex-direction: column;
+        justify-content: center;
+        animation: aparecer 0.25s ease;
+      }
+
+      .slide.activa { display: flex; }
+
+      @keyframes aparecer {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      h1 { font-size: clamp(30px, 4.6vw, 62px); letter-spacing: -0.03em; line-height: 1.1; }
+      h2 {
+        font-size: clamp(22px, 2.7vw, 38px);
+        letter-spacing: -0.02em;
+        margin-bottom: 26px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--borde);
+      }
+      h3 { font-size: clamp(15px, 1.5vw, 20px); color: var(--azul); margin: 18px 0 8px; }
+
+      p, li { font-size: clamp(14px, 1.35vw, 19px); }
+      ul { margin-left: 22px; }
+      li { margin-bottom: 9px; }
+      strong { color: #fff; }
+      em { color: var(--azul); font-style: normal; font-weight: 600; }
+
+      .sub { color: var(--suave); font-size: clamp(15px, 1.6vw, 22px); margin-top: 14px; }
+      .autores { color: var(--suave); font-size: clamp(13px, 1.2vw, 16px); margin-top: 40px; }
+
+      .cita {
+        border-left: 3px solid var(--azul);
+        padding: 10px 0 10px 18px;
+        color: var(--suave);
+        font-style: italic;
+        margin-top: 24px;
+        max-width: 60ch;
+      }
+
+      pre {
+        background: var(--superficie);
+        border: 1px solid var(--borde);
+        border-radius: 8px;
+        padding: 14px 16px;
+        overflow: auto;
+        font-family: "SF Mono", Menlo, Consolas, monospace;
+        font-size: clamp(10px, 1.05vw, 14px);
+        line-height: 1.5;
+        color: #b9c2d8;
+      }
+
+      table { border-collapse: collapse; width: 100%; margin-top: 8px; }
+      th, td {
+        text-align: left;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--borde);
+        font-size: clamp(12px, 1.15vw, 16px);
+      }
+      th { color: var(--suave); font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.06em; }
+
+      .rejilla { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-top: 10px; }
+
+      .caja {
+        background: var(--superficie);
+        border: 1px solid var(--borde);
+        border-radius: 10px;
+        padding: 16px;
+      }
+      .caja h3 { margin-top: 0; }
+      .caja p { font-size: clamp(12px, 1.1vw, 15px); color: var(--suave); }
+
+      .cifras { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; margin-top: 26px; }
+      .cifra { text-align: center; background: var(--superficie); border: 1px solid var(--borde); border-radius: 10px; padding: 18px 10px; }
+      .cifra b { display: block; font-size: clamp(26px, 3.4vw, 44px); color: var(--verde); font-variant-numeric: tabular-nums; }
+      .cifra span { font-size: 12px; color: var(--suave); text-transform: uppercase; letter-spacing: 0.06em; }
+
+      .dos { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; align-items: start; }
+
+      .pie {
+        position: fixed;
+        bottom: 16px;
+        left: 7vw;
+        right: 7vw;
+        display: flex;
+        justify-content: space-between;
+        color: #5c6479;
+        font-size: 12px;
+        letter-spacing: 0.04em;
+      }
+
+      .barra { position: fixed; top: 0; left: 0; height: 3px; background: var(--azul); transition: width 0.25s ease; }
+
+      .etiqueta {
+        display: inline-block;
+        background: rgba(91, 140, 255, 0.15);
+        color: var(--azul);
+        border-radius: 999px;
+        padding: 3px 11px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        margin-bottom: 14px;
+      }
+      .etiqueta--verde { background: rgba(52, 209, 125, 0.15); color: var(--verde); }
+      .etiqueta--rojo { background: rgba(242, 85, 90, 0.15); color: var(--rojo); }
+
+      @media (max-width: 760px) {
+        .dos { grid-template-columns: 1fr; gap: 16px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="barra" id="barra"></div>
+
+    <!-- 1 -->
+    <section class="slide activa">
+      <span class="etiqueta">Práctica Final · DevOps</span>
+      <h1>TaskFlow</h1>
+      <p class="sub">Diseño e implementación de un pipeline DevOps de extremo a extremo</p>
+      <p class="cita">
+        La aplicación es sencilla a propósito. Lo que construimos no es un gestor de tareas:
+        es el camino automatizado que lleva un commit a producción con confianza.
+      </p>
+      <p class="autores">Integrantes: ____________ · ____________ · ____________</p>
+    </section>
+
+    <!-- 2 -->
+    <section class="slide">
+      <h2>El problema que resuelve un pipeline</h2>
+      <div class="dos">
+        <div>
+          <h3>Sin pipeline</h3>
+          <ul>
+            <li>El despliegue es manual y distinto cada vez.</li>
+            <li>Los errores se descubren <strong>en producción</strong>.</li>
+            <li>Nadie sabe si el servicio está sano hasta que un usuario reclama.</li>
+            <li>Volver atrás es improvisar bajo presión.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Con pipeline</h3>
+          <ul>
+            <li>Cada commit atraviesa las <strong>mismas seis puertas</strong>, siempre.</li>
+            <li>El fallo aparece en menos de un minuto.</li>
+            <li>Métricas, logs y alertas responden por el servicio.</li>
+            <li>El rollback es un comando con el SHA del commit.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 -->
+    <section class="slide">
+      <h2>Arquitectura de la aplicación</h2>
+      <pre>
+Navegador (HTML/CSS/JS, sin frameworks)
+        │  HTTP / JSON
+        ▼
+Express ── middlewares ── rutas ── controladores ── servicio ── SQLite
+             │                                        (toda la lógica de negocio)
+             ├─► métricas Prometheus  /metrics
+             └─► logs JSON con requestId  (Winston)</pre>
+      <ul style="margin-top: 18px">
+        <li>Arquitectura <em>en capas</em>: los controladores no ejecutan SQL; el servicio no conoce Express.</li>
+        <li>Esa separación permite <strong>31 pruebas unitarias sin levantar un servidor</strong>.</li>
+        <li><code>app.js</code> construye la aplicación, <code>server.js</code> la arranca: Supertest monta <code>app</code> directamente.</li>
+      </ul>
+    </section>
+
+    <!-- 4 -->
+    <section class="slide">
+      <h2>Stack tecnológico</h2>
+      <table>
+        <tr><th>Capa</th><th>Herramienta</th><th>Por qué</th></tr>
+        <tr><td>Aplicación</td><td>Node 20 · Express · SQLite</td><td>Cero servicios externos</td></tr>
+        <tr><td>Pruebas</td><td>Jest · Supertest</td><td>54 pruebas · 92 % cobertura</td></tr>
+        <tr><td>Calidad</td><td>ESLint 9 · Prettier · npm audit</td><td>Bloquea la build</td></tr>
+        <tr><td>Contenedores</td><td>Docker multi-etapa · Compose</td><td>Imagen mínima, sin root</td></tr>
+        <tr><td>CI/CD</td><td>GitHub Actions</td><td>8 jobs, sin infraestructura propia</td></tr>
+        <tr><td>Métricas</td><td>prom-client · Prometheus</td><td>Formato estándar</td></tr>
+        <tr><td>Logs</td><td>Winston · Promtail · Loki</td><td>JSON consultable</td></tr>
+        <tr><td>Alertas</td><td>Alertmanager</td><td>Agrupación e inhibición</td></tr>
+      </table>
+    </section>
+
+    <!-- 5 -->
+    <section class="slide">
+      <h2>El pipeline</h2>
+      <pre>
+ commit / PR
+     │
+     ├──► calidad     ESLint + Prettier         ┐
+     ├──► pruebas     Jest · Node 20 y 22       ├─ en paralelo (~1 min)
+     └──► seguridad   npm audit                 ┘
+                   │  los tres deben pasar
+                   ▼
+              imagen        docker buildx ─► GHCR  (tags: sha, rama, semver)
+                   ▼
+            smoke-test      contenedor real · 13 verificaciones
+                   ▼
+        ┌──────────┴───────────┐
+ develop│                      │main
+        ▼                      ▼
+     staging               producción</pre>
+    </section>
+
+    <!-- 6 -->
+    <section class="slide">
+      <h2>Tres decisiones que defendemos</h2>
+      <div class="rejilla">
+        <div class="caja">
+          <h3>1 · Validación en paralelo</h3>
+          <p>Feedback de fallo en ~1 min en lugar de ~3. En un pipeline se optimiza el tiempo hasta el <strong>fallo</strong>, no hasta el éxito.</p>
+        </div>
+        <div class="caja">
+          <h3>2 · Los PR no publican</h3>
+          <p>Código propuesto no es código aceptado. No debe poder inyectar artefactos en el registro antes de la revisión.</p>
+        </div>
+        <div class="caja">
+          <h3>3 · Smoke tests reales</h3>
+          <p>Jest valida el código; no detecta que el Dockerfile olvidó copiar <code>public/</code>. Son verificaciones distintas.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7 -->
+    <section class="slide">
+      <span class="etiqueta etiqueta--verde">Demo en vivo</span>
+      <h2>Guion de la demostración</h2>
+      <table>
+        <tr><th>#</th><th>Qué se muestra</th><th>Tiempo</th></tr>
+        <tr><td>1</td><td>La aplicación funcionando: crear y completar una tarea</td><td>45 s</td></tr>
+        <tr><td>2</td><td><code>npm test</code> — 54 pruebas en 2,5 segundos</td><td>45 s</td></tr>
+        <tr><td>3</td><td><strong>Romper la validación a propósito</strong> → 5 pruebas fallan → el commit no se despliega</td><td>90 s</td></tr>
+        <tr><td>4</td><td>El pipeline en GitHub Actions: paralelismo, fan-in, resumen</td><td>60 s</td></tr>
+        <tr><td>5</td><td>Generar tráfico y ver Grafana reaccionar en vivo</td><td>60 s</td></tr>
+        <tr><td>6</td><td><code>docker compose stop app</code> → la alerta pasa a FIRING</td><td>60 s</td></tr>
+        <tr><td>7</td><td>Loki: buscar un error por su <code>requestId</code></td><td>30 s</td></tr>
+      </table>
+    </section>
+
+    <!-- 8 -->
+    <section class="slide">
+      <h2>Monitoreo: los tres pilares</h2>
+      <div class="rejilla">
+        <div class="caja">
+          <h3>Métricas</h3>
+          <p>Prometheus + Grafana<br /><strong>¿Cómo se comporta el sistema?</strong></p>
+        </div>
+        <div class="caja">
+          <h3>Logs</h3>
+          <p>Winston + Loki<br /><strong>¿Qué pasó en esta petición?</strong></p>
+        </div>
+        <div class="caja">
+          <h3>Alertas</h3>
+          <p>Alertmanager<br /><strong>¿Cuándo debo intervenir?</strong></p>
+        </div>
+      </div>
+      <h3>Detalle que demuestra criterio: cardinalidad</h3>
+      <p>
+        Las rutas se normalizan a <code>/api/tasks/:id</code> en lugar de <code>/api/tasks/42</code>.
+        Sin eso, mil tareas generarían mil series temporales y Prometheus se degradaría.
+        En Promtail solo <code>level</code>, <code>route</code> y <code>statusCode</code> se
+        promueven a etiquetas de Loki.
+      </p>
+    </section>
+
+    <!-- 9 -->
+    <section class="slide">
+      <h2>Alertas configuradas</h2>
+      <table>
+        <tr><th>Alerta</th><th>Condición</th><th>Espera</th><th>Severidad</th></tr>
+        <tr><td>AplicacionCaida</td><td><code>up == 0</code></td><td>1 min</td><td>critical</td></tr>
+        <tr><td>TasaDeErroresAlta</td><td>&gt; 5 % de 5xx</td><td>2 min</td><td>critical</td></tr>
+        <tr><td>ExcesoDeErroresDeCliente</td><td>&gt; 5 req/s con 4xx</td><td>5 min</td><td>warning</td></tr>
+        <tr><td>LatenciaAlta</td><td>p95 &gt; 1 s</td><td>3 min</td><td>warning</td></tr>
+        <tr><td>MemoriaElevada</td><td>RSS &gt; 400 MB</td><td>5 min</td><td>warning</td></tr>
+        <tr><td>ReinicioDelServicio</td><td>uptime &lt; 5 min</td><td>inmediata</td><td>info</td></tr>
+      </table>
+      <p style="margin-top: 16px">
+        La cláusula <code>for</code>, la agrupación y las reglas de <strong>inhibición</strong> son
+        lo que separa un sistema que se consulta de uno que se silencia.
+      </p>
+    </section>
+
+    <!-- 10 -->
+    <section class="slide">
+      <span class="etiqueta etiqueta--rojo">Desafíos</span>
+      <h2>Problemas reales y cómo se resolvieron</h2>
+      <table>
+        <tr><th>Desafío</th><th>Solución</th></tr>
+        <tr><td>Las pruebas se contaminaban entre sí</td><td><code>NODE_ENV=test</code> → SQLite <code>:memory:</code> + reset en cada <code>beforeEach</code></td></tr>
+        <tr><td><code>/api/tasks/stats</code> devolvía 400</td><td>Express la capturaba como <code>/:id</code>: declarar la ruta literal antes</td></tr>
+        <tr><td>Cardinalidad explosiva en Prometheus</td><td>Normalizar la etiqueta <code>route</code> con <code>req.route.path</code></td></tr>
+        <tr><td>Imagen Docker de más de 1 GB</td><td>Build multi-etapa: runtime solo recibe producción</td></tr>
+        <tr><td><code>docker stop</code> cortaba peticiones en vuelo</td><td><code>tini</code> como PID 1 + <code>server.close()</code> con timeout</td></tr>
+        <tr><td>Una caída disparaba seis alertas</td><td>Regla de inhibición en Alertmanager</td></tr>
+      </table>
+    </section>
+
+    <!-- 11 -->
+    <section class="slide">
+      <h2>Lecciones aprendidas</h2>
+      <ul>
+        <li><strong>Automatizar temprano cuesta menos que automatizar tarde.</strong> Montamos el pipeline con la aplicación a medias; cada funcionalidad posterior nació ya validada.</li>
+        <li><strong>La observabilidad se diseña, no se añade.</strong> El <code>requestId</code>, la normalización de rutas y la separación liveness/readiness son decisiones de la aplicación, no del stack de monitoreo.</li>
+        <li><strong>Los smoke tests cubren un hueco que las unitarias no ven.</strong> Nuestro primer contenedor pasaba <code>npm test</code> y devolvía 404 en <code>/</code>: el <code>.dockerignore</code> excluía <code>public/</code>.</li>
+        <li><strong>Una alerta ruidosa es peor que ninguna alerta.</strong> La primera versión disparaba <em>LatenciaAlta</em> en cada despliegue.</li>
+        <li><strong>La documentación operativa se escribe pensando en el incidente</strong>, no en la arquitectura.</li>
+      </ul>
+    </section>
+
+    <!-- 12 -->
+    <section class="slide">
+      <h2>Cumplimiento del enunciado</h2>
+      <div class="cifras">
+        <div class="cifra"><b>54</b><span>pruebas</span></div>
+        <div class="cifra"><b>92 %</b><span>cobertura</span></div>
+        <div class="cifra"><b>8</b><span>jobs CI/CD</span></div>
+        <div class="cifra"><b>6</b><span>servicios Docker</span></div>
+        <div class="cifra"><b>6</b><span>reglas de alerta</span></div>
+        <div class="cifra"><b>5</b><span>documentos</span></div>
+      </div>
+      <p style="margin-top: 26px">
+        Repositorio Git · Pipeline CI/CD · Contenedores · Pruebas unitarias y de integración ·
+        Análisis estático · Logs centralizados · Métricas · Alertas · Documentación completa.
+      </p>
+    </section>
+
+    <!-- 13 -->
+    <section class="slide">
+      <h2>Trabajo futuro</h2>
+      <ul>
+        <li>Escaneo de la imagen con <strong>Trivy</strong> dentro del pipeline.</li>
+        <li>Pruebas <strong>end-to-end</strong> de navegador con Playwright.</li>
+        <li>Migración a <strong>PostgreSQL</strong> para permitir múltiples réplicas.</li>
+        <li><strong>Despliegue canario</strong> con incremento progresivo de tráfico.</li>
+        <li><strong>Trazas distribuidas</strong> con OpenTelemetry: el tercer pilar de la observabilidad.</li>
+        <li><strong>Autenticación</strong> de usuarios y autorización por rol.</li>
+      </ul>
+    </section>
+
+    <!-- 14 -->
+    <section class="slide" style="align-items: center; text-align: center">
+      <h1>Gracias</h1>
+      <p class="sub">Preguntas</p>
+      <p class="autores">
+        Repositorio · README.md · docs/INSTALACION.md · docs/PIPELINE.md · docs/OPERACIONES.md
+      </p>
+    </section>
+
+    <div class="pie">
+      <span>TaskFlow · Pipeline DevOps</span>
+      <span id="contador">1 / 14</span>
+    </div>
+
+    <script>
+      // Navegacion del deck: flechas, espacio, inicio/fin, clic y swipe tactil.
+      (function () {
+        'use strict';
+
+        var slides = document.querySelectorAll('.slide');
+        var contador = document.getElementById('contador');
+        var barra = document.getElementById('barra');
+        var actual = 0;
+
+        // Muestra la diapositiva indicada y actualiza contador y barra de progreso
+        function mostrar(indice) {
+          actual = Math.max(0, Math.min(indice, slides.length - 1));
+          slides.forEach(function (s, i) {
+            s.classList.toggle('activa', i === actual);
+          });
+          contador.textContent = actual + 1 + ' / ' + slides.length;
+          barra.style.width = ((actual + 1) / slides.length) * 100 + '%';
+          // Se guarda la posicion para no perderla al recargar durante la demo
+          try {
+            window.localStorage.setItem('taskflow-slide', String(actual));
+          } catch (e) {
+            /* localStorage puede estar bloqueado: la navegacion sigue funcionando */
+          }
+        }
+
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+            e.preventDefault();
+            mostrar(actual + 1);
+          } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+            e.preventDefault();
+            mostrar(actual - 1);
+          } else if (e.key === 'Home') {
+            mostrar(0);
+          } else if (e.key === 'End') {
+            mostrar(slides.length - 1);
+          }
+        });
+
+        // Clic en la mitad derecha avanza, en la izquierda retrocede
+        document.addEventListener('click', function (e) {
+          mostrar(e.clientX > window.innerWidth / 2 ? actual + 1 : actual - 1);
+        });
+
+        // Soporte tactil para presentar desde tablet
+        var inicioX = null;
+        document.addEventListener('touchstart', function (e) {
+          inicioX = e.changedTouches[0].clientX;
+        });
+        document.addEventListener('touchend', function (e) {
+          if (inicioX === null) return;
+          var delta = e.changedTouches[0].clientX - inicioX;
+          if (Math.abs(delta) > 50) mostrar(delta < 0 ? actual + 1 : actual - 1);
+          inicioX = null;
+        });
+
+        // Restaura la ultima diapositiva vista
+        var guardada = 0;
+        try {
+          guardada = parseInt(window.localStorage.getItem('taskflow-slide'), 10) || 0;
+        } catch (e) {
+          guardada = 0;
+        }
+        mostrar(guardada);
+      })();
+    </script>
+  </body>
+</html>

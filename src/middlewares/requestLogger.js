@@ -11,14 +11,20 @@ const metrics = require('../config/metrics');
  * Normaliza la ruta para las etiquetas de Prometheus.
  * Sin esto, cada /api/tasks/123 generaria una serie distinta (cardinalidad infinita).
  * @param {import('express').Request} req - Peticion en curso.
+ * @param {import('express').Response} res - Respuesta ya finalizada.
  * @returns {string} Patron de ruta, por ejemplo '/api/tasks/:id'.
  */
-function rutaNormalizada(req) {
+function rutaNormalizada(req, res) {
   // req.route existe solo cuando un handler concreto atendio la peticion
   if (req.route && req.baseUrl !== undefined) {
     return `${req.baseUrl}${req.route.path}`.replace(/\/$/, '') || '/';
   }
-  // Peticiones no enrutadas (404) se agrupan bajo una etiqueta unica
+  // express.static resuelve sin dejar req.route. Se distingue de un 404 real
+  // para no mezclar el trafico del frontend con las rutas inexistentes.
+  if (res.statusCode < 400) {
+    return 'static';
+  }
+  // Peticiones no enrutadas se agrupan bajo una etiqueta unica de baja cardinalidad
   return 'unmatched';
 }
 
@@ -35,7 +41,7 @@ function requestLogger(req, res, next) {
     const duracionSegundos = Number(process.hrtime.bigint() - inicio) / 1e9;
     const etiquetas = {
       method: req.method,
-      route: rutaNormalizada(req),
+      route: rutaNormalizada(req, res),
       status_code: String(res.statusCode),
     };
 

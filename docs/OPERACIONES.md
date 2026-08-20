@@ -66,8 +66,13 @@ curl -s localhost:3000/metrics | grep -E '^http_requests_total'
 ### Actualizar a una versión nueva
 
 ```bash
-docker compose pull
-docker compose up -d
+# En un servidor, con la imagen publicada por el pipeline
+export TASKFLOW_IMAGE=ghcr.io/USUARIO/DevOps-Final:latest
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+# En desarrollo, reconstruyendo desde el código local
+docker compose up -d --build
+
 ./scripts/smoke-test.sh http://localhost:3000   # verificación posterior
 ```
 
@@ -328,20 +333,28 @@ Cron sugerido:
 El pipeline etiqueta cada imagen con el SHA corto del commit, lo que permite volver a
 una versión exacta.
 
+El despliegue en servidor usa el override [`docker-compose.prod.yml`](../docker-compose.prod.yml),
+que sustituye la construcción local por la imagen publicada. Volver atrás es cambiar la etiqueta:
+
 ```bash
-# 1. Identificar la versión estable anterior
-docker images ghcr.io/USUARIO/DevOps-Final --format '{{.Tag}}\t{{.CreatedSince}}'
+# 1. Identificar la versión estable anterior (por SHA del commit)
+git log --oneline -10
 
-# 2. Fijar esa etiqueta
-export APP_VERSION=a1b2c3d
+# 2. Redesplegar esa imagen exacta
+export TASKFLOW_IMAGE=ghcr.io/USUARIO/DevOps-Final:a1b2c3d
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d app
 
-# 3. Redesplegar
-docker compose pull app
-docker compose up -d app
-
-# 4. Verificar
+# 3. Verificar
 ./scripts/wait-for-health.sh http://localhost:3000/health 60
 ./scripts/smoke-test.sh http://localhost:3000
+```
+
+En un entorno de desarrollo donde el compose base **construye** la imagen en lugar de
+descargarla, el rollback equivalente es volver al commit y reconstruir:
+
+```bash
+git checkout a1b2c3d
+docker compose up -d --build app
 ```
 
 **Criterio de decisión:** si el servicio está degradado y la causa no se identifica en

@@ -1,0 +1,25 @@
+# Override para desplegar la imagen ya publicada por el pipeline en lugar de
+# construirla en el servidor. Se combina con el compose base:
+#
+#   TASKFLOW_IMAGE=ghcr.io/USUARIO/DevOps-Final:a1b2c3d \
+#     docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Fijar TASKFLOW_IMAGE a una etiqueta por SHA es el mecanismo de rollback:
+# permite volver a una version exacta sin reconstruir nada.
+
+services:
+  app:
+    # !reset elimina la seccion build heredada: en produccion no se compila,
+    # solo se descarga la imagen que ya paso por todo el pipeline
+    build: !reset null
+    image: ${TASKFLOW_IMAGE:?Debe definir TASKFLOW_IMAGE con la etiqueta a desplegar}
+    pull_policy: always
+    environment:
+      NODE_ENV: production
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      INSTANCE_ID: ${INSTANCE_ID:-prod-1}
+    # Limites de recursos: evitan que una fuga de memoria afecte al resto del host
+    deploy:
+      resources:
+        limits:
+          memory: 512M

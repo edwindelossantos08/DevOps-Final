@@ -58,7 +58,7 @@ Express — rutas → controladores → servicio → SQLite
 **Puntos a destacar:**
 
 - Arquitectura **en capas**: los controladores no ejecutan SQL, el servicio no conoce Express.
-- Esa separación es lo que permite tener **29 pruebas unitarias sin levantar un servidor**.
+- Esa separación es lo que permite tener **31 pruebas unitarias sin levantar un servidor**.
 - `app.js` construye la aplicación; `server.js` la arranca. Supertest monta `app` directamente.
 
 ---
@@ -130,9 +130,13 @@ Rompa algo a propósito, en vivo:
 
 ```bash
 # Introducir un fallo real en la validación
-sed -i '' 's/if (!titulo) {/if (false) {/' src/services/tasks.service.js
+# (en macOS: sed -i '' ...  ·  en Linux: sed -i ... )
+sed -i '' "s/if (!titulo) {/if (false) {/" src/services/tasks.service.js
 npm test
 ```
+
+> Alternativa sin `sed`, más segura en vivo: abrir `src/services/tasks.service.js`,
+> comentar la línea `throw new AppError('El titulo es obligatorio.', 400);` y guardar.
 
 > _"Cinco pruebas fallan de inmediato. Este commit no llega a construirse ni a desplegarse:
 > el job `imagen` depende de que `pruebas` pase."_
@@ -257,8 +261,8 @@ se degradaría. La misma lógica se aplicó en Promtail: solo `level`, `route` y
 | Repositorio Git        | Ramas `main`/`develop`, `.gitignore`, historial limpio          |
 | Pipeline CI/CD         | `.github/workflows/ci-cd.yml` — 8 jobs                          |
 | Contenedores Docker    | `Dockerfile` multi-etapa + `docker-compose.yml` con 6 servicios |
-| Pruebas unitarias      | 33 pruebas en `tests/unit/`                                     |
-| Pruebas de integración | 21 pruebas en `tests/integration/`                              |
+| Pruebas unitarias      | 31 pruebas en `tests/unit/`                                     |
+| Pruebas de integración | 23 pruebas en `tests/integration/`                              |
 | Análisis estático      | ESLint 9 + Prettier + `npm audit`, bloqueantes en CI            |
 | Logs centralizados     | Winston JSON → Promtail → Loki → Grafana                        |
 | Métricas               | 7 familias de métricas → Prometheus → dashboard de 11 paneles   |

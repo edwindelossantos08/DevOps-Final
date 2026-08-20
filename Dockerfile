@@ -1,16 +1,12 @@
 # syntax=docker/dockerfile:1
 
 # Imagen multi-etapa de TaskFlow.
-# Etapa 1 compila las dependencias nativas (better-sqlite3); la etapa final solo
-# lleva el runtime, lo que reduce el tamano y la superficie de ataque.
+# La etapa 'deps' resuelve las dependencias nativas (better-sqlite3) y la etapa
+# final solo copia el resultado, lo que reduce el tamano y la superficie de ataque.
+# Las pruebas y el lint corren en el runner de CI antes de construir la imagen.
 
 # ---------- Etapa 1: dependencias de produccion ----------
 FROM node:20-bookworm-slim AS deps
-
-# Herramientas de compilacion necesarias si npm no encuentra un binario precompilado
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends python3 make g++ \
-    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -18,18 +14,21 @@ WORKDIR /app
 # mientras package*.json no cambie, no se reinstalan dependencias
 COPY package.json package-lock.json ./
 
-# npm ci instala exactamente lo fijado en el lockfile (builds reproducibles)
-RUN npm ci --omit=dev
+# npm ci instala exactamente lo fijado en el lockfile (builds reproducibles).
+# better-sqlite3 descarga un binario precompilado para la plataforma, asi que
+# normalmente no hace falta un compilador. Se verifica que el modulo nativo
+# carga y, solo si falla, se instalan las herramientas de build y se recompila:
+# esto evita anadir 300 MB de compiladores al caso habitual.
+RUN npm ci --omit=dev \
+    && node -e "require('better-sqlite3')" \
+    || ( apt-get update \
+         && apt-get install -y --no-install-recommends python3 make g++ \
+         && npm rebuild better-sqlite3 --build-from-source \
+         && apt-get purge -y python3 make g++ \
+         && apt-get autoremove -y \
+         && rm -rf /var/lib/apt/lists/* )
 
-# ---------- Etapa 2: dependencias completas para pruebas ----------
-FROM deps AS test
-
-# Reinstala incluyendo devDependencies para poder ejecutar lint y Jest en CI
-RUN npm ci
-COPY . .
-RUN npm run lint && npm test
-
-# ---------- Etapa 3: imagen final de ejecucion ----------
+# ---------- Etapa 2: imagen final de ejecucion ----------
 FROM node:20-bookworm-slim AS runtime
 
 # Version inyectada por el pipeline (tag de git o SHA del commit)

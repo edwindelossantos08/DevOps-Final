@@ -198,6 +198,7 @@ DevOps-Final/
 ├── docs/                           # Instalación, pipeline, operaciones, presentación
 ├── Dockerfile                      # Imagen multi-etapa
 ├── docker-compose.yml              # Stack app + monitoreo
+├── docker-compose.prod.yml         # Override: despliega la imagen publicada
 ├── eslint.config.js  jest.config.js
 └── README.md
 ```
@@ -300,10 +301,10 @@ npm run lint           # Análisis estático
 
 | Nivel           | Archivos                           | Qué cubre                                                 | Cantidad |
 | --------------- | ---------------------------------- | --------------------------------------------------------- | -------- |
-| **Unitarias**   | `tests/unit/tasks.service.test.js` | Validaciones, reglas de negocio, consultas y ordenamiento | 29       |
+| **Unitarias**   | `tests/unit/tasks.service.test.js` | Validaciones, reglas de negocio, consultas y ordenamiento | 27       |
 | **Unitarias**   | `tests/unit/errorHandler.test.js`  | Manejo de 404 y enmascarado de errores 500                | 4        |
 | **Integración** | `tests/integration/api.test.js`    | CRUD completo vía HTTP, filtros, ciclo de vida end-to-end | 16       |
-| **Integración** | `tests/integration/health.test.js` | `/health`, `/metrics`, cabeceras de seguridad, 404        | 5        |
+| **Integración** | `tests/integration/health.test.js` | `/health`, `/metrics`, cabeceras de seguridad, 404        | 7        |
 | **Smoke**       | `scripts/smoke-test.sh`            | 13 verificaciones contra un contenedor real en CI         | —        |
 
 ### Cobertura actual

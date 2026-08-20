@@ -232,13 +232,18 @@ docker run -d \
 
 ### 6.3 Actualizar a una versión nueva
 
+En el servidor se usa el override [`docker-compose.prod.yml`](../docker-compose.prod.yml),
+que reemplaza la construcción local por la imagen ya publicada y verificada por el pipeline:
+
 ```bash
-docker compose pull
-docker compose up -d
+export TASKFLOW_IMAGE=ghcr.io/USUARIO/DevOps-Final:latest
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
 
 Compose reemplaza los contenedores cuya imagen cambió y **conserva los volúmenes**,
-por lo que no se pierden datos.
+por lo que no se pierden datos. Para volver a una versión anterior basta con fijar
+`TASKFLOW_IMAGE` a la etiqueta por SHA de ese commit (véase el
+[procedimiento de rollback](OPERACIONES.md#5-rollback)).
 
 ### 6.4 Proxy inverso con TLS (recomendado en producción)
 
