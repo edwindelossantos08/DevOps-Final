@@ -417,6 +417,26 @@ Consultas útiles en Grafana → Explore → Loki:
 
 ---
 
+## Entregables en PDF
+
+La carpeta `entrega-pdf/` contiene los dos documentos en el formato pedido para la entrega:
+
+| Archivo                                          | Contenido                                                               |
+| ------------------------------------------------ | ----------------------------------------------------------------------- |
+| `TaskFlow-Documentacion-Edwin-De-Los-Santos.pdf` | Los cinco documentos Markdown unidos, con portada e índice (46 páginas) |
+| `TaskFlow-Presentacion-Edwin-De-Los-Santos.pdf`  | Las 14 diapositivas en formato 16:9                                     |
+
+Ambos se regeneran desde las fuentes del repositorio, de modo que nunca quedan
+desincronizados respecto a la documentación:
+
+```bash
+./scripts/generar-pdfs.sh
+```
+
+El script imprime `docs/slides.html` con la hoja de estilos `@media print` que trae el
+propio deck, y convierte los Markdown a un HTML A4 usando `scripts/plantilla-pdf.html`.
+Requiere Chrome y `npx`; no instala nada de forma permanente.
+
 ## Licencia
 
 MIT — proyecto académico.

@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>TaskFlow — Documentación</title>
+    <!-- Plantilla usada por scripts/generar-pdfs.sh. El script concatena
+         debajo el HTML de cada documento Markdown y cierra las etiquetas. -->
+    <style>
+      @page {
+        size: A4;
+        margin: 18mm 16mm;
+      }
+      /* La portada va a sangre completa, sin margenes de pagina */
+      @page :first {
+        margin: 0;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        font-size: 10.5pt;
+        line-height: 1.55;
+        color: #1a1d26;
+        margin: 0;
+        /* Sin esto el navegador descarta los fondos al imprimir */
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .portada {
+        height: 297mm;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 0 28mm;
+        background: #0d1017;
+        color: #e8eaf0;
+        page-break-after: always;
+      }
+      .portada h1 {
+        font-size: 34pt;
+        margin: 0 0 6pt;
+        letter-spacing: -0.02em;
+      }
+      .portada .sub {
+        font-size: 13pt;
+        color: #949cb2;
+        margin: 0 0 26pt;
+      }
+      .portada .meta {
+        font-size: 11pt;
+        color: #949cb2;
+        line-height: 2;
+      }
+      .portada .autor {
+        font-size: 13pt;
+        color: #5b8cff;
+        font-weight: 600;
+        margin-top: 22pt;
+      }
+
+      .indice {
+        page-break-after: always;
+      }
+      .indice h2 {
+        border: none;
+        margin-top: 0;
+      }
+      .indice ol {
+        font-size: 11pt;
+        line-height: 2.1;
+        padding-left: 20pt;
+      }
+
+      /* Cada documento arranca en pagina nueva */
+      .documento {
+        page-break-before: always;
+      }
+
+      h1 {
+        font-size: 19pt;
+        margin: 0 0 10pt;
+        letter-spacing: -0.01em;
+      }
+      h2 {
+        font-size: 14pt;
+        margin: 20pt 0 8pt;
+        padding-bottom: 4pt;
+        border-bottom: 1px solid #dfe3ee;
+        page-break-after: avoid;
+      }
+      h3 {
+        font-size: 11.5pt;
+        margin: 14pt 0 5pt;
+        color: #2d3550;
+        page-break-after: avoid;
+      }
+      h4 {
+        font-size: 10.5pt;
+        margin: 11pt 0 4pt;
+      }
+
+      p,
+      li {
+        orphans: 3;
+        widows: 3;
+      }
+      ul,
+      ol {
+        padding-left: 18pt;
+      }
+      li {
+        margin-bottom: 3pt;
+      }
+
+      a {
+        color: #2f5fd0;
+        text-decoration: none;
+      }
+
+      code {
+        font-family: "SF Mono", Menlo, Consolas, monospace;
+        font-size: 8.8pt;
+        background: #f0f2f8;
+        border-radius: 3px;
+        padding: 1px 4px;
+      }
+
+      pre {
+        background: #f6f7fb;
+        border: 1px solid #e2e6f0;
+        border-left: 3px solid #5b8cff;
+        border-radius: 4px;
+        padding: 8pt 10pt;
+        /* Los diagramas ASCII son anchos: se ajustan en lugar de recortarse */
+        white-space: pre-wrap;
+        word-break: break-word;
+        page-break-inside: avoid;
+      }
+      pre code {
+        background: none;
+        padding: 0;
+        font-size: 8.2pt;
+        line-height: 1.45;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 8pt 0;
+        font-size: 9pt;
+        page-break-inside: avoid;
+      }
+      th,
+      td {
+        border: 1px solid #dfe3ee;
+        padding: 4pt 6pt;
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        background: #f0f2f8;
+        font-weight: 600;
+      }
+
+      blockquote {
+        margin: 8pt 0;
+        padding: 4pt 0 4pt 12pt;
+        border-left: 3px solid #c3cade;
+        color: #4a5268;
+      }
+
+      hr {
+        border: none;
+        border-top: 1px solid #e2e6f0;
+        margin: 14pt 0;
+      }
+
+      img {
+        max-width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="portada">
+      <h1>TaskFlow</h1>
+      <p class="sub">Diseño e implementación de un pipeline DevOps completo</p>
+      <div class="meta">
+        Práctica Final · DevOps<br />
+        Aplicación web con CI/CD, contenedores, pruebas automatizadas y monitoreo
+      </div>
+      <div class="autor">Edwin De Los Santos · Matrícula 2025-1032</div>
+    </div>
+
+    <div class="indice">
+      <h2>Contenido</h2>
+      <ol>
+        <li>README — visión general, arquitectura y API REST</li>
+        <li>Guía de instalación</li>
+        <li>Documentación del pipeline CI/CD</li>
+        <li>Manual de operaciones</li>
+        <li>Guion de la presentación</li>
+      </ol>
+    </div>

@@ -147,6 +147,61 @@
       @media (max-width: 760px) {
         .dos { grid-template-columns: 1fr; gap: 16px; }
       }
+
+      /* ---------- Impresion y exportacion a PDF ----------
+         En pantalla solo se muestra la diapositiva activa. Al imprimir hay que
+         revelarlas todas y forzar un salto de pagina entre ellas, de lo contrario
+         el PDF saldria con una sola hoja. */
+
+      @media print {
+        /* Formato apaisado 16:9 (13.33 x 7.5 pulgadas = 1280 x 720 px a 96 ppp),
+           el mismo tamano que usa PowerPoint para pantalla panoramica */
+        @page {
+          size: 13.33in 7.5in;
+          margin: 0;
+        }
+
+        html,
+        body {
+          height: auto;
+          overflow: visible;
+          background: var(--fondo);
+          /* Sin esto los navegadores descartan los fondos oscuros al imprimir */
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+
+        /* Todas las diapositivas visibles, una por pagina */
+        .slide {
+          display: flex !important;
+          height: 7.5in;
+          width: 13.33in;
+          padding: 0.5in 0.8in;
+          animation: none;
+          page-break-after: always;
+          break-after: page;
+          page-break-inside: avoid;
+          break-inside: avoid;
+        }
+
+        /* La ultima no debe generar una pagina en blanco al final */
+        .slide:last-of-type {
+          page-break-after: auto;
+          break-after: auto;
+        }
+
+        /* Elementos de navegacion: no aportan nada en papel */
+        .barra,
+        .pie {
+          display: none;
+        }
+
+        /* Los bloques de codigo no deben cortarse entre paginas */
+        pre {
+          break-inside: avoid;
+          page-break-inside: avoid;
+        }
+      }
     </style>
   </head>
   <body>
