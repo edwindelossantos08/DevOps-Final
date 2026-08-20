@@ -34,10 +34,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Descargar el codigo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Configurar Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -64,10 +64,10 @@ jobs:
         node: ['20', '22']
     steps:
       - name: Descargar el codigo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Configurar Node.js ${{ matrix.node }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node }}
           cache: npm
@@ -87,7 +87,7 @@ jobs:
       - name: Publicar el reporte de cobertura como artefacto
         # Se sube solo una vez, desde la version principal de Node
         if: matrix.node == '20'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cobertura
           path: coverage/
@@ -101,10 +101,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Descargar el codigo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Configurar Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -132,7 +132,7 @@ jobs:
       imagen: ${{ steps.meta.outputs.tags }}
     steps:
       - name: Descargar el codigo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Configurar Buildx (builds con cache y multiplataforma)
         uses: docker/setup-buildx-action@v3
@@ -178,7 +178,7 @@ jobs:
     needs: [imagen]
     steps:
       - name: Descargar el codigo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Construir la imagen localmente
         run: docker build --target runtime -t taskflow:ci .
@@ -213,7 +213,7 @@ jobs:
       url: https://staging.taskflow.example.com
     steps:
       - name: Descargar el codigo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Desplegar
         # En un entorno real aqui iria el ssh/kubectl/compose contra el servidor.
@@ -237,7 +237,7 @@ jobs:
       url: https://taskflow.example.com
     steps:
       - name: Descargar el codigo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Desplegar
         run: |
