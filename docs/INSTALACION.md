@@ -41,7 +41,7 @@ El stack completo levanta 6 contenedores. Asigne a Docker al menos:
 ## 2. Obtener el código
 
 ```bash
-git clone https://github.com/USUARIO/DevOps-Final.git
+git clone https://github.com/edwindelossantos08/DevOps-Final.git
 cd DevOps-Final
 ```
 
@@ -216,8 +216,8 @@ sudo usermod -aG docker "$USER"   # requiere volver a iniciar sesión
 El pipeline publica la imagen en GitHub Container Registry:
 
 ```bash
-echo "$GHCR_TOKEN" | docker login ghcr.io -u USUARIO --password-stdin
-docker pull ghcr.io/USUARIO/DevOps-Final:latest
+echo "$GHCR_TOKEN" | docker login ghcr.io -u edwindelossantos08 --password-stdin
+docker pull ghcr.io/edwindelossantos08/devops-final:latest
 
 docker run -d \
   --name taskflow \
@@ -227,7 +227,7 @@ docker run -d \
   -e INSTANCE_ID=prod-1 \
   -v taskflow-data:/app/data \
   -v taskflow-logs:/app/logs \
-  ghcr.io/USUARIO/DevOps-Final:latest
+  ghcr.io/edwindelossantos08/devops-final:latest
 ```
 
 ### 6.3 Actualizar a una versión nueva
@@ -236,7 +236,7 @@ En el servidor se usa el override [`docker-compose.prod.yml`](../docker-compose.
 que reemplaza la construcción local por la imagen ya publicada y verificada por el pipeline:
 
 ```bash
-export TASKFLOW_IMAGE=ghcr.io/USUARIO/DevOps-Final:latest
+export TASKFLOW_IMAGE=ghcr.io/edwindelossantos08/devops-final:latest
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
 

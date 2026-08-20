@@ -21,6 +21,8 @@ concurrency:
 env:
   NODE_VERSION: '20'
   REGISTRY: ghcr.io
+  # docker/metadata-action normaliza el nombre a minusculas, que es lo que
+  # exige GHCR aunque el repositorio tenga mayusculas
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:

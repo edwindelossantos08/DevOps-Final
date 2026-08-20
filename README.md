@@ -5,7 +5,7 @@
 >
 > **Autor:** Edwin De Los Santos · Matrícula 2025-1032
 
-[![CI/CD Pipeline](https://github.com/USUARIO/REPO/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/USUARIO/REPO/actions/workflows/ci-cd.yml)
+[![CI/CD Pipeline](https://github.com/edwindelossantos08/DevOps-Final/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/edwindelossantos08/DevOps-Final/actions/workflows/ci-cd.yml)
 ![Node](https://img.shields.io/badge/node-20.x-green)
 ![Docker](https://img.shields.io/badge/docker-multi--stage-blue)
 ![Tests](https://img.shields.io/badge/tests-54%20passing-brightgreen)

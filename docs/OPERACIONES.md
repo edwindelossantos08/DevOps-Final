@@ -67,7 +67,7 @@ curl -s localhost:3000/metrics | grep -E '^http_requests_total'
 
 ```bash
 # En un servidor, con la imagen publicada por el pipeline
-export TASKFLOW_IMAGE=ghcr.io/USUARIO/DevOps-Final:latest
+export TASKFLOW_IMAGE=ghcr.io/edwindelossantos08/devops-final:latest
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 # En desarrollo, reconstruyendo desde el código local
@@ -341,7 +341,7 @@ que sustituye la construcción local por la imagen publicada. Volver atrás es c
 git log --oneline -10
 
 # 2. Redesplegar esa imagen exacta
-export TASKFLOW_IMAGE=ghcr.io/USUARIO/DevOps-Final:a1b2c3d
+export TASKFLOW_IMAGE=ghcr.io/edwindelossantos08/devops-final:a1b2c3d
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d app
 
 # 3. Verificar
