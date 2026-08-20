@@ -312,9 +312,9 @@ npm run lint           # Análisis estático
 ```
 File                  | % Stmts | % Branch | % Funcs | % Lines
 ----------------------|---------|----------|---------|--------
-All files             |   92.90 |    81.95 |   96.77 |   93.21
+All files             |   92.60 |    81.48 |   96.77 |   92.90
  src/services         |   94.68 |    92.53 |  100.00 |   95.69
- src/middlewares      |  100.00 |    96.15 |  100.00 |  100.00
+ src/middlewares      |   96.87 |    92.85 |  100.00 |   96.87
  src/routes           |   91.89 |   100.00 |  100.00 |   91.89
 ```
 
