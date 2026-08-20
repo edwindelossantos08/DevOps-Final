@@ -30,3 +30,6 @@ Thumbs.db
 
 # Volumenes de monitoreo
 monitoring/**/data/
+
+# Copias temporales generadas al verificar los PDF de entrega
+entrega-pdf/_*
